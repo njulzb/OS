@@ -80,8 +80,30 @@ public class MemoryAllocator {
             this.usedMemoryList = newInsert;
         }
         else {
+            //insert the new node
+            if (this.usedMemoryList.getBeginAddress() > newInsert.getBeginAddress()){
+                newInsert.setNext(this.usedMemoryList);
+                this.usedMemoryList = newInsert;
+            }
+            else {
+                MemoryNode node = this.usedMemoryList;
+                MemoryNode before = null;
+                while (node != null && node.getBeginAddress() < newInsert.getBeginAddress()){
+                    before = node;
+                    node = node.getNext();
+                }
 
-            this.usedMemoryList.getLastNode().setNext(newInsert);
+
+                if (before == null){
+                    before = this.usedMemoryList;
+                }
+                newInsert.setNext(before.getNext());
+                before.setNext(newInsert);
+
+
+            }
+
+
         }
 
 
@@ -107,6 +129,7 @@ public class MemoryAllocator {
         }
 
 
+        this.freeSize -= newInsert.getLength();
 
 
         return newInsert.getBeginAddress();
@@ -124,7 +147,7 @@ public class MemoryAllocator {
 
         MemoryNode before = this.freeMemoryList,after = before.getNext();
 
-        while (before != null){
+        while (after != null){
             if (before.getBeginAddress() + before.getLength() == after.getBeginAddress()){
                 //merge
                 before.setLength(before.getLength() + after.getLength());
@@ -133,6 +156,49 @@ public class MemoryAllocator {
             }
             before = after;
             after = after.getNext();
+        }
+
+        /**
+         * 首部归还
+         */
+        MemoryNode head = this.usedMemoryList;
+        if ( head.getBeginAddress()!=0){
+            //update free list
+            //update used list
+            int temp = head.getBeginAddress();
+            head.setBeginAddress(0);
+            this.freeMemoryList.setBeginAddress(head.getLength());
+            this.adjustMemory();
+        }
+
+
+        /**
+         * 遍历used list,将不连续的合并成连续的
+         */
+        MemoryNode left = this.usedMemoryList;
+        MemoryNode right = left.getNext();
+        while (right != null){
+            if (left.getBeginAddress() + left.getLength() < right.getBeginAddress()){
+                //a gap here
+                right.setBeginAddress(left.getBeginAddress() + left.getLength());
+                //update free list
+                MemoryNode node = this.freeMemoryList;
+                while (node != null && node.getBeginAddress() != right.getBeginAddress()){
+                    node = node.getNext();
+                }
+
+                if (node == null) {
+                    return false;//something wrong
+                }
+
+                node.setBeginAddress(right.getBeginAddress() + right.getLength());
+
+                this.adjustMemory();
+            }
+
+            left = right;
+            right = right.getNext();
+
         }
 
 
@@ -172,13 +238,25 @@ public class MemoryAllocator {
         /**
          * update the free list
          */
+
+        MemoryNode newFree = new MemoryNode(usedNode.getBeginAddress(),usedNode.getLength(),null);
+        if (this.freeMemoryList == null){
+            this.freeMemoryList = newFree;
+            this.freeSize += newFree.getLength();
+            return true;
+        }
+        if (this.freeMemoryList.getBeginAddress() > usedNode.getBeginAddress()){
+            newFree.setNext(this.freeMemoryList);
+            this.freeMemoryList = newFree;
+            this.freeSize += newFree.getLength();
+            return true;
+        }
+
         MemoryNode freeNode = this.freeMemoryList;
         while (freeNode != null){
             if (freeNode.getBeginAddress() <= usedNode.getBeginAddress()){
-                if (freeNode.getNext() == null){
-                    break;
-                }
-                else if (freeNode.getNext().getBeginAddress() > usedNode.getBeginAddress()){
+                if ( !freeNode.hasNext() ||
+                        freeNode.getNext().getBeginAddress() > usedNode.getBeginAddress()){
                     break;
                 }
             }
@@ -201,6 +279,8 @@ public class MemoryAllocator {
             freeNode.setNext(newFreeNode);
         }
 
+
+        this.freeSize += newFreeNode.getLength();
 
         return true;
     }
