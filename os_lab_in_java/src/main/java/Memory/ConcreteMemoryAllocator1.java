@@ -1,4 +1,4 @@
-
+package Memory;
 
 /**
  * 这是课堂上骆斌出的题目
@@ -10,14 +10,14 @@
  * @author lzb
  * @date 2018/4/18 17:32
  */
-public class MemoryAllocator {
+public class ConcreteMemoryAllocator1 {
 
     private MemoryNode usedMemoryList;
     private MemoryNode freeMemoryList;
     private int totalSize;
     private int freeSize;
 
-    public MemoryAllocator(int size) {
+    public ConcreteMemoryAllocator1(int size) {
         this.totalSize = size;
         this.freeSize = this.totalSize;
 

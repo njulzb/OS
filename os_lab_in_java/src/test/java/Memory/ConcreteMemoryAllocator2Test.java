@@ -1,41 +1,18 @@
-import org.junit.jupiter.api.Test;
+package Memory;
 
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author lzb
- * @date 2018/4/18 21:53
+ * @date 2018/4/19 16:24
  */
-class MemoryAllocatorTest {
+class ConcreteMemoryAllocator2Test {
 
     @Test
-    /**
-     * 基本的测试，只对基本情况做了测试，边界值还没有测试
-     */
     void requestMemoryByFirstFit() {
-
-        MemoryAllocator god = new MemoryAllocator(100);
-        int begin = god.requestMemoryByFirstFit("p1",60);
-        assertEquals(0,begin);
-        int begin2 = god.requestMemoryByFirstFit("p2",30);
-        assertEquals(60,begin2);
-        int begin3 = god.requestMemoryByFirstFit("p3",10);
-        assertEquals(90,begin3);
-
-        boolean result = god.returnMemory("p1");
-        assertTrue(result);
-
-        int begin4 = god.requestMemoryByFirstFit("p4",30);
-        assertEquals(0,begin4);
-
-
-
-    }
-
-    @Test
-    void adjustMemory() {
-        MemoryAllocator god = new MemoryAllocator(100);
+        ConcreteMemoryAllocator2 god = new ConcreteMemoryAllocator2(100);
         int p1begin = god.requestMemoryByFirstFit("p1",80);
         int p2begin = god.requestMemoryByFirstFit("p2",20);
         assertEquals(0,p1begin);
@@ -68,9 +45,5 @@ class MemoryAllocatorTest {
         int p7begin = god.requestMemoryByFirstFit("p7",30);
         assertEquals(70,p7begin);
 
-    }
-
-    @Test
-    void returnMemory() {
     }
 }
